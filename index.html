@@ -526,7 +526,7 @@ function draw() {
      });
 
      const state = {
-         input: (await get(INPUT_CODE)) || '',
+         input: (await get(INPUT_CODE)) || query.base ? fetch_text(query.base) ? '',
          html,
          editors: {}
      };
