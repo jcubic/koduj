@@ -240,6 +240,9 @@
     <div class="config">
       <ul>
         <li>
+          <button id="reset" class="btn">Reset</button>
+        </li>
+        <li>
           <button id="download" class="btn">Download</button>
         </li>
       </ul>
@@ -366,11 +369,19 @@ function draw() {
      }
  };
 
- function get_main() {
-     if (query.main) {
-         return fetch_text(query.main);
+ function get_from_query(variable, fallback = '') {
+     if (variable) {
+         return fetch_text(variable);
      }
-     return main_code.innerHTML;
+     return fallback;
+ }
+
+ function get_main() {
+     return get_from_query(query.main, main_code.innerHTML);
+ }
+
+ function load_base() {
+     return get_from_query(query.base);
  }
 
  function get_includes() {
@@ -505,6 +516,11 @@ function draw() {
      $('.errors').on('click', '.close', function() {
          $(this).closest('li').remove();
      });
+     $('#reset').on('click', async function() {
+         state.innput = await load_base()
+         update_editor(state.editors.input, state.innput);
+         return false;
+     });
      $('#download').on('click', function() {
          const zip = new JSZip();
          const game = zip.folder("p5");
@@ -526,7 +542,7 @@ function draw() {
      });
 
      const state = {
-         input: (await get(INPUT_CODE)) || query.base ? fetch_text(query.base) ? '',
+         input: (await get(INPUT_CODE)) || await load_base(),
          html,
          editors: {}
      };
