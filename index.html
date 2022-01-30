@@ -66,6 +66,9 @@
          margin: 0;
          padding: 0;
      }
+     .tabs {
+         height: 100%;
+     }
      .tabs > ul {
          padding: 5px 10px 0 5px;
          background: black;
@@ -95,6 +98,9 @@
          display: block;
          padding: 6px 18px;
          text-decoration: none;
+     }
+     #term {
+         height: 100%;
      }
      @media screen and (min-width: 900px) {
          iframe, aside {
@@ -224,14 +230,15 @@
          text-decoration: none;
      }
     </style>
+    <link href="https://cdn.jsdelivr.net/combine/npm/prismjs/themes/prism-coy.css,npm/jquery.terminal/css/jquery.terminal.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/jquery"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/lib/codemirror.js"></script>
     <script src="https://cdn.jsdelivr.net/combine/npm/codemirror@5.x.x/addon/search/search.js,npm/codemirror@5.x.x/addon/search/matchesonscrollbar.js,npm/codemirror@5.x.x/addon/search/searchcursor.js,npm/codemirror@5.x.x/addon/search/jump-to-line.js,npm/codemirror@5.x.x/addon/scroll/annotatescrollbar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/addon/dialog/dialog.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/mode/javascript/javascript.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/mode/simple.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery.splitter"></script>
-    <script src="https://cdn.jsdelivr.net/gh/jcubic/static/js/idb-keyval.js"></script>
+    <script src="https://cdn.jsdelivr.net/combine/npm/jquery.splitter,gh/jcubic/static/js/idb-keyval.js"></script>
+    <script src="https://cdn.jsdelivr.net/combine/npm/jquery.terminal/js/jquery.terminal.min.js,npm/js-polyfills/keyboard.js,npm/prismjs/prism.min.js,npm/jquery.terminal/js/prism.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body>
@@ -239,6 +246,10 @@
     <h1>P5.js</h1>
     <div class="config">
       <ul>
+        <li>
+          <label for="console-mode">Console</label>
+          <input type="checkbox" id="console-mode"/>
+        </li>
         <li>
           <button id="reset" class="btn">Reset</button>
         </li>
@@ -259,17 +270,22 @@
       </div>
     </div>
   </aside>
-  <div class="tabs">
-    <ul>
-      <li class="active"><a href="#">Preview</a></li>
-    </ul>
-    <div class="content">
-      <div class="output active">
-        <iframe id="frame"></iframe>
-        <div class="errors">
-          <ul></ul>
+  <div class="output-wrapper">
+    <div class="tabs">
+      <ul>
+        <li class="active"><a href="#">Preview</a></li>
+      </ul>
+      <div class="content">
+        <div class="output active">
+          <iframe id="frame"></iframe>
+          <div class="errors">
+            <ul></ul>
+          </div>
         </div>
       </div>
+    </div>
+    <div class="dev hidden">
+      <div id="term"></div>
     </div>
   </div>
 </main>
@@ -293,12 +309,37 @@ function draw() {
         main();
     } catch (e) {
         window.parent.postMessage({
+            type: 'error',
             message: e.message,
             colno: null,
             lineno: null
         });
     }
+    noLoop();
 }
+(log => {
+  function repr(object) {
+     if (object) {
+         if (typeof object === 'object') {
+             var name = object.constructor.name;
+             if (name) {
+                 return `#&lt;${name}&gt;`;
+             } else {
+                 return object.toString();
+             }
+         } else {
+             return new String(object);
+         }
+     }
+  }
+  console.log = function(...args) {
+     window.parent.postMessage({
+        type: 'echo',
+        args: args.map(repr)
+     });
+     log.apply(console, args);
+  };
+})(console.log);
 </script>
 <script>
 
@@ -378,6 +419,18 @@ function draw() {
 
  function get_main() {
      return get_from_query(query.main, main_code.innerHTML);
+ }
+
+ async function get_js_template() {
+     if (query.template === 'none') {
+         return '{{CODE}}';
+     } else if (query.template) {
+         return fetch_text(query.template);
+     } else {
+         return template(template_code.innerHTML, {
+             MAIN: await get_main()
+         });
+     }
  }
 
  function load_base() {
@@ -504,6 +557,42 @@ function draw() {
      URL.revokeObjectURL(url);
  }
 
+ // ref: https://stackoverflow.com/q/67322922/387194
+ var __EVAL = (s) => {
+     const window = frame.contentWindow;
+     return window.eval(`void (__EVAL = ${__EVAL}); ${s}`);
+ };
+
+  function repr(object) {
+     if (object) {
+         if (typeof object === 'object') {
+             var name = object.constructor.name;
+             if (name) {
+                 return `#&lt;${name}&gt;`;
+             } else {
+                 return object.toString();
+             }
+         } else {
+             return new String(object);
+         }
+     }
+ }
+
+ function repl(fn) {
+     return function(code) {
+         if (code !== '') {
+             try {
+                 var result = fn(code);
+                 if (result) {
+                     this.echo(repr(result));
+                 }
+             } catch(e) {
+                 this.error(new String(e));
+             }
+         }
+     };
+ }
+
  (async function($) {
      const has_worker = !!worker;
      await worker;
@@ -530,10 +619,29 @@ function draw() {
              download(content, "p5.zip");
          });
      });
+     let console_splitter;
+
+     var $dev_toggle = $('#console-mode').on('change', function() {
+         toggle_dev_mode(this.checked);
+     });
+
+     $.terminal.syntax('javascript');
+     $.terminal.prism_formatters = {
+        animation: true,
+        command: true
+     };
+     let term;
+     $('iframe').on('load', () => {
+         term = $('#term').terminal(repl((code) => __EVAL(code)), {
+             greetings: 'JavaScript Console',
+             completion: Object.keys(frame.contentWindow)
+         });
+     });
 
      const { get, set } = idbKeyval;
 
      const INPUT_CODE = '__code__';
+     const DEV_MODE = 'p5__dev__mode';
      const SCRIPT_FILE = '_p5.js';
      const HTML_FILE = '_p5.html'
 
@@ -542,49 +650,77 @@ function draw() {
      });
 
      const state = {
+         dev_mode: ls.get(DEV_MODE),
          input: (await get(INPUT_CODE)) || await load_base(),
          html,
          editors: {}
      };
      window.state = state;
 
-     const js_template = template(template_code.innerHTML, {
-         MAIN: await get_main()
-     });
+     const js_template = await get_js_template();
 
      state.editors.input = make_editor('.js-editor', state.input, {
          readOnly: false
      });
      update();
+     async function show_error(data) {
+         const { lineno, colno, message, source } = data;
+         if (lineno === null || colno === null) {
+             return error('.output', `Error: ${message}`);
+         }
+         const msg = `Error: ${message}\nline: ${lineno} col: ${colno}`;
+         error('.output', msg);
+         if (state.full_output_mode) {
+             const code = await fetch(source).then(res => res.text());
+             const lines = code.split('\n');
+             const line = lines[lineno - 1];
+             var start = {
+                 line: lineno -1,
+                 ch: line.match(/^(\s*)/)[0].length
+             }
+             const end = { line: lineno - 1, ch: line.length };
+             state.editors.output.scrollIntoView(start);
+             mark_error(
+                 state.editors.output,
+                 message,
+                 start,
+                 end
+             );
+         }
+     }
      window.addEventListener('message', async function(event) {
          const { data } = event;
-         if (data && data.message) {
-             const { lineno, colno, message, source } = data;
-             if (lineno === null || colno === null) {
-                 return error('.output', `Error: ${message}`);
-             }
-             const msg = `Error: ${message}\nline: ${lineno} col: ${colno}`;
-             error('.output', msg);
-             if (state.full_output_mode) {
-                 const code = await fetch(source).then(res => res.text());
-                 const lines = code.split('\n');
-                 const line = lines[lineno - 1];
-                 var start = {
-                     line: lineno -1,
-                     ch: line.match(/^(\s*)/)[0].length
-                 }
-                 const end = { line: lineno - 1, ch: line.length };
-                 state.editors.output.scrollIntoView(start);
-                 mark_error(
-                     state.editors.output,
-                     message,
-                     start,
-                     end
-                 );
+         if (data) {
+             if (data.type === 'error') {
+                 show_error(data);
+             } else if (data.type === 'echo') {
+                 data.args.forEach(arg => {
+                     term.echo(arg);
+                 });
              }
          }
      });
      state.editors.input.on('change', debounce(update, 800));
+     if (state.dev_mode !== undefined) {
+         toggle_dev_mode(state.dev_mode);
+         $dev_toggle.prop('checked', state.dev_mode);
+     }
+
+     function toggle_dev_mode(enable) {
+         state.dev_mode = enable;
+         ls.set(DEV_MODE, state.dev_mode);
+         $('.dev').toggleClass('hidden', !state.dev_mode);
+         if (enable) {
+             if (!console_splitter) {
+                 console_splitter = $('.output-wrapper').split({
+                     orientation: 'horizontal'
+                 });
+             }
+         } else if (console_splitter) {
+             console_splitter.destroy();
+             console_splitter = null;
+         }
+     }
 
      function template(string, mapping) {
          Object.entries(mapping).forEach(([key, value]) => {
