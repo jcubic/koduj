@@ -593,6 +593,13 @@ function draw() {
      };
  }
 
+ function template(string, mapping) {
+     Object.entries(mapping).forEach(([key, value]) => {
+         string = string.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
+     });
+     return string;
+ }
+
  (async function($) {
      const has_worker = !!worker;
      await worker;
@@ -720,13 +727,6 @@ function draw() {
              console_splitter.destroy();
              console_splitter = null;
          }
-     }
-
-     function template(string, mapping) {
-         Object.entries(mapping).forEach(([key, value]) => {
-             string = string.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
-         });
-         return string;
      }
 
      function set_idb() {
