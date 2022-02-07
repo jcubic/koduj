@@ -16,6 +16,9 @@ if (!is_valid_room() && !is_facebook()) {
         }
         $url .= $room;
     }
+    if (!empty($_SERVER['QUERY_STRING'])) {
+        $url .= "?" . $_SERVER['QUERY_STRING'];
+    }
     header('Location: ' . $url, true, 302);
     die();
 }
