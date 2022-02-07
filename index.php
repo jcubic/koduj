@@ -74,7 +74,7 @@ $origin = origin();
     <link href="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/lib/codemirror.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/combine/npm/codemirror@5.x.x/addon/search/matchesonscrollbar.css,npm/codemirror@5.x.x/addon/dialog/dialog.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/theme/seti.css" rel="stylesheet"/>
-    <script>var room = '<?= $_GET['room'] ?>';</script>
+    <script>var room = '<?= $_GET['room'] ?>'; var root = '<?= $root ?>';</script>
     <style>
      :root {
          --separator: gray;
@@ -122,7 +122,7 @@ $origin = origin();
          margin: 0;
          padding: 0;
      }
-     .tabs {
+     .tabs, .firepad {
          height: 100%;
      }
      .tabs > ul {
@@ -295,6 +295,10 @@ $origin = origin();
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/mode/simple.js"></script>
     <script src="https://cdn.jsdelivr.net/combine/npm/jquery.splitter,gh/jcubic/static/js/idb-keyval.js"></script>
     <script src="https://cdn.jsdelivr.net/combine/npm/jquery.terminal/js/jquery.terminal.min.js,npm/js-polyfills/keyboard.js,npm/prismjs/prism.min.js,npm/jquery.terminal/js/prism.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script src="https://cdn.firebase.com/libs/firepad/1.4.0/firepad.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body>
@@ -498,7 +502,6 @@ function draw() {
 
  function get_includes() {
      if (query.include) {
-         const root = location.pathname;
          return query.include.split(',').map(file => {
              return `<script src="${root}${file}"></` + 'script>';
          }).join('');
@@ -538,21 +541,6 @@ function draw() {
 
  function to_json(object) {
      return JSON.stringify(object, true, 2);
- }
-
- function make_editor(element, code, options) {
-     var $node = $(element);
-     const settings = $.extend({
-         value: code,
-         theme: 'seti',
-         lineWrapping: true,
-         lineNumbers: true,
-         extraKeys: { Tab: better_tab, "Alt-F": "findPersistent" },
-         readOnly: true,
-         indentUnit: 4,
-         mode: 'javascript'
-     }, options);
-     return CodeMirror($node.get(0), settings);
  }
 
  function clear_marks(editor) {
@@ -660,6 +648,19 @@ function draw() {
  }
 
  (async function($) {
+     const firebase_config = {
+         apiKey: "AIzaSyD6lTSZ09MvFeDXL7vAXf7v3u7s32e9jG0",
+         authDomain: "jcubic-p5.firebaseapp.com",
+         databaseURL: "https://jcubic-p5-default-rtdb.europe-west1.firebasedatabase.app",
+         projectId: "jcubic-p5",
+         storageBucket: "jcubic-p5.appspot.com",
+         messagingSenderId: "158560894455",
+         appId: "1:158560894455:web:d95ad6e0a417348e6702f2"
+     };
+     const app = firebase.initializeApp(firebase_config);
+     const database = app.database();
+     const roomRef = database.ref().child(room);
+
      const has_worker = !!worker;
      await worker;
      const media_query = 'screen and (max-width: 900px)';
@@ -672,8 +673,8 @@ function draw() {
          $(this).closest('li').remove();
      });
      $('#reset').on('click', async function() {
-         state.innput = await load_base()
-         update_editor(state.editors.input, state.innput);
+         state.innput = await load_base();
+         state.firepad.setText(state.innput);
          return false;
      });
      $('#download').on('click', function() {
@@ -725,8 +726,17 @@ function draw() {
 
      const js_template = await get_js_template();
 
-     state.editors.input = make_editor('.js-editor', state.input, {
-         readOnly: false
+     state.editors.input = CodeMirror($('.js-editor').get(0), {
+         theme: 'seti',
+         lineWrapping: true,
+         lineNumbers: true,
+         extraKeys: { Tab: better_tab, "Alt-F": "findPersistent" },
+         indentUnit: 4,
+         mode: 'javascript'
+     });
+
+     state.firepad = Firepad.fromCodeMirror(roomRef, state.editors.input, {
+         defaultText: state.input
      });
      update();
      async function show_error(data) {
