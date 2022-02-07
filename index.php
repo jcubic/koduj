@@ -1,4 +1,59 @@
-<!DOCTYPE HTML>
+<?php
+/*
+ *  This file is part of P5.js playground <https://p5.javascript.org.pl>
+ *
+ *  Copyright (C) Jakub T. Jankiewicz <https://jcubic.pl/me>
+ */
+
+if (!is_valid_room() && !is_facebook()) {
+    $url = self_url();
+    $room = generate_name();
+    if (preg_match("/index.php/", $url)) {
+        $url .= "?room=$room";
+    } else {
+        if (!preg_match("|[/:]$|", $url)) {
+            $url .= "/";
+        }
+        $url .= $room;
+    }
+    header('Location: ' . $url, true, 302);
+    die();
+}
+
+function is_facebook() {
+    return strpos($_SERVER["HTTP_USER_AGENT"], "facebookexternalhit/") !== false ||
+           strpos($_SERVER["HTTP_USER_AGENT"], "Facebot") !== false;
+}
+
+function is_valid_room() {
+    if (!isset($_GET['room']) || empty($_GET['room'])) {
+        return false;
+    }
+    return preg_match("/^\w+-\w+$/", $_GET['room']);
+}
+
+function generate_name() {
+    $nouns = explode("\n", file_get_contents("dict/nouns.txt"));
+    $adjectives = explode("\n", file_get_contents("dict/adjectives.txt"));
+    $i = array_rand($nouns);
+    $j = array_rand($adjectives);
+    return strtolower($adjectives[$j] . '-' . $nouns[$i]);
+}
+
+function self_url() {
+    return origin() . strtok($_SERVER[REQUEST_URI], '?');
+}
+
+function origin() {
+    $protocol = (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] === "on" ? "https" : "http");
+    return "$protocol://$_SERVER[HTTP_HOST]";
+}
+
+$root = preg_replace("|/[^/]+$|", "/", $_SERVER['REQUEST_URI']);
+
+$origin = origin();
+
+?><!DOCTYPE HTML>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
@@ -19,6 +74,7 @@
     <link href="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/lib/codemirror.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/combine/npm/codemirror@5.x.x/addon/search/matchesonscrollbar.css,npm/codemirror@5.x.x/addon/dialog/dialog.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/theme/seti.css" rel="stylesheet"/>
+    <script>var room = '<?= $_GET['room'] ?>';</script>
     <style>
      :root {
          --separator: gray;
