@@ -721,7 +721,7 @@ function draw() {
 
      const state = {
          dev_mode: ls.get(DEV_MODE),
-         input: (await get(INPUT_CODE)) || await load_base(),
+         input: await load_base(),
          html,
          editors: {}
      };
