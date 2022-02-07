@@ -801,17 +801,17 @@ function draw() {
          }
      }
 
-     function set_idb() {
-         set(INPUT_CODE, state.input);
-         set(HTML_FILE, state.html);
-         set(SCRIPT_FILE, state.javascript);
+     async function set_idb() {
+         await set(INPUT_CODE, state.input);
+         await set(HTML_FILE, state.html);
+         await set(SCRIPT_FILE, state.javascript);
      }
 
-     function update() {
+     async function update() {
          clear_error('.output');
          state.input = state.editors.input.getValue();
          state.javascript = get_javascript(state.input);
-         set_idb();
+         await set_idb();
          frame.src = `./__idb__/${HTML_FILE}`;
      }
 
