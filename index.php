@@ -741,7 +741,28 @@ function draw() {
      state.firepad = Firepad.fromCodeMirror(roomRef, state.editors.input, {
          defaultText: state.input
      });
-     update();
+     window.addEventListener('message', async function(event) {
+         const { data } = event;
+         if (data) {
+             if (data.type === 'error') {
+                 show_error(data);
+             } else if (data.type === 'echo') {
+                 data.args.forEach(arg => {
+                     term.echo(arg);
+                 });
+             }
+         }
+     });
+     
+     state.editors.input.on('change', debounce(update, 800));
+     
+     if (state.dev_mode !== undefined) {
+         toggle_dev_mode(state.dev_mode);
+         $dev_toggle.prop('checked', state.dev_mode);
+     }
+
+     state.firepad.on('ready', update);
+
      async function show_error(data) {
          const { lineno, colno, message, source } = data;
          if (lineno === null || colno === null) {
@@ -766,23 +787,6 @@ function draw() {
                  end
              );
          }
-     }
-     window.addEventListener('message', async function(event) {
-         const { data } = event;
-         if (data) {
-             if (data.type === 'error') {
-                 show_error(data);
-             } else if (data.type === 'echo') {
-                 data.args.forEach(arg => {
-                     term.echo(arg);
-                 });
-             }
-         }
-     });
-     state.editors.input.on('change', debounce(update, 800));
-     if (state.dev_mode !== undefined) {
-         toggle_dev_mode(state.dev_mode);
-         $dev_toggle.prop('checked', state.dev_mode);
      }
 
      function toggle_dev_mode(enable) {
@@ -822,7 +826,6 @@ function draw() {
              CODE: input
          });
      }
-
  })(jQuery);
 </script>
 <!-- Start Open Web Analytics Tracker -->
