@@ -363,32 +363,6 @@ function main() {
     {{CODE}}
 }
 </script>
-
-<script type="text/x-template" id="terminal_log_code">
-;(log => {
-  function repr(object) {
-     if (object) {
-         if (typeof object === 'object') {
-             var name = object.constructor.name;
-             if (name) {
-                 return `#&lt;${name}&gt;`;
-             } else {
-                 return object.toString();
-             }
-         } else {
-             return new String(object);
-         }
-     }
-  }
-  console.log = function(...args) {
-     window.parent.postMessage({
-        type: 'echo',
-        args: args.map(repr)
-     });
-     log.apply(console, args);
-  };
-})(console.log);
-</script>
 <script type="text/x-template" id="template_code">
 function setup() {
     createCanvas({{WIDTH}}, {{HEIGHT}});
@@ -491,13 +465,12 @@ function draw() {
  }
 
  async function get_js_template() {
-     var log_code = terminal_log_code.innerHTML;
      if (query.template === 'none') {
-         return log_code + '{{CODE}}';
+         return '{{CODE}}';
      } else if (query.template) {
-         return log_code + (await fetch_text(query.template));
+         return fetch_text(query.template);
      } else {
-         return log_code + template(template_code.innerHTML, {
+         return template(template_code.innerHTML, {
              MAIN: await get_main()
          });
      }
@@ -825,7 +798,7 @@ function draw() {
          state.input = state.editors.input.getValue();
          state.javascript = get_javascript(state.input);
          await set_idb();
-         term.exec('reset', true);
+         term && term.exec('reset', true);
          frame.src = `./__idb__/${HTML_FILE}`;
      }
 

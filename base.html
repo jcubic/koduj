@@ -20,6 +20,29 @@
              lineno
          });
      });
+     (log => {
+         function repr(object) {
+             if (object) {
+                 if (typeof object === 'object') {
+                     var name = object.constructor.name;
+                     if (name) {
+                         return `#&lt;${name}&gt;`;
+                     } else {
+                         return object.toString();
+                     }
+                 } else {
+                     return new String(object);
+                 }
+             }
+         }
+         console.log = function(...args) {
+             window.parent.postMessage({
+                 type: 'echo',
+                 args: args.map(repr)
+             });
+             log.apply(console, args);
+         };
+     })(console.log);
     </script>
     {{HTML}}
     <script src="./_p5.js"></script>
