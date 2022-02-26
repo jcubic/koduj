@@ -182,6 +182,11 @@ $origin = origin();
          scrollbar-color: var(--color, #aaa) var(--background, #000);
          scrollbar-width: thin;
      }
+     .firepad .CodeMirror-matchingbracket {
+        text-decoration: none;
+        color: white !important;
+        background: #41535b;
+     }
      .CodeMirror .syntax-error {
          background: red !important;
          color: black !important;
@@ -292,7 +297,7 @@ $origin = origin();
     <link href="https://cdn.jsdelivr.net/combine/npm/prismjs/themes/prism-coy.css,npm/jquery.terminal/css/jquery.terminal.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/jquery"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/lib/codemirror.js"></script>
-    <script src="https://cdn.jsdelivr.net/combine/npm/codemirror@5.x.x/addon/search/search.js,npm/codemirror@5.x.x/addon/search/matchesonscrollbar.js,npm/codemirror@5.x.x/addon/search/searchcursor.js,npm/codemirror@5.x.x/addon/search/jump-to-line.js,npm/codemirror@5.x.x/addon/scroll/annotatescrollbar.js"></script>
+    <script src="https://cdn.jsdelivr.net/combine/npm/codemirror@5.x.x/addon/search/search.js,npm/codemirror@5.x.x/addon/search/matchesonscrollbar.js,npm/codemirror@5.x.x/addon/search/searchcursor.js,npm/codemirror@5.x.x/addon/search/jump-to-line.js,npm/codemirror@5.x.x/addon/scroll/annotatescrollbar.js,npm/codemirror@5.x.x/addon/edit/matchbrackets.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/addon/dialog/dialog.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/mode/javascript/javascript.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/mode/simple.js"></script>
@@ -715,6 +720,7 @@ function draw() {
          theme: 'seti',
          lineWrapping: true,
          lineNumbers: true,
+         matchBrackets: true,
          extraKeys: { Tab: better_tab, "Alt-F": "findPersistent" },
          indentUnit: 4,
          mode: 'javascript'
