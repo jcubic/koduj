@@ -706,7 +706,12 @@ function draw() {
      };
      let term;
      $('iframe').on('load', () => {
-         term = $('#term').terminal(repl((code) => __EVAL(code)), {
+         term = $('#term').terminal([{
+             reset: function() {
+                 this.clear();
+                 this.echo('JavaScript Console');
+             }
+         }, repl((code) => __EVAL(code))], {
              greetings: 'JavaScript Console',
              completion: Object.keys(frame.contentWindow)
          });
@@ -820,6 +825,7 @@ function draw() {
          state.input = state.editors.input.getValue();
          state.javascript = get_javascript(state.input);
          await set_idb();
+         term.exec('reset', true);
          frame.src = `./__idb__/${HTML_FILE}`;
      }
 
