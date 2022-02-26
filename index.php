@@ -363,27 +363,9 @@ function main() {
     {{CODE}}
 }
 </script>
-<script type="text/x-template" id="template_code">
-function setup() {
-    createCanvas({{WIDTH}}, {{HEIGHT}});
-}
 
-{{MAIN}}
-
-function draw() {
-    try {
-        main();
-    } catch (e) {
-        window.parent.postMessage({
-            type: 'error',
-            message: e.message,
-            colno: null,
-            lineno: null
-        });
-    }
-    noLoop();
-}
-(log => {
+<script type="text/x-template" id="terminal_log_code">
+;(log => {
   function repr(object) {
      if (object) {
          if (typeof object === 'object') {
@@ -406,6 +388,27 @@ function draw() {
      log.apply(console, args);
   };
 })(console.log);
+</script>
+<script type="text/x-template" id="template_code">
+function setup() {
+    createCanvas({{WIDTH}}, {{HEIGHT}});
+}
+
+{{MAIN}}
+
+function draw() {
+    try {
+        main();
+    } catch (e) {
+        window.parent.postMessage({
+            type: 'error',
+            message: e.message,
+            colno: null,
+            lineno: null
+        });
+    }
+    noLoop();
+}
 </script>
 <script>
 
@@ -488,12 +491,13 @@ function draw() {
  }
 
  async function get_js_template() {
+     var log_code = terminal_log_code.innerHTML;
      if (query.template === 'none') {
-         return '{{CODE}}';
+         return log_code + '{{CODE}}';
      } else if (query.template) {
-         return fetch_text(query.template);
+         return log_code + (await fetch_text(query.template));
      } else {
-         return template(template_code.innerHTML, {
+         return log_code + template(template_code.innerHTML, {
              MAIN: await get_main()
          });
      }
