@@ -204,6 +204,9 @@ $origin = origin();
      .config li {
          display: inline-block;
      }
+     .config .console label {
+         color: white;
+     }
      .config li + li {
          margin-left: 6px;
      }
@@ -314,7 +317,7 @@ $origin = origin();
     <h1>P5.js</h1>
     <div class="config">
       <ul>
-        <li>
+        <li class="console">
           <label for="console-mode">Console</label>
           <input type="checkbox" id="console-mode"/>
         </li>
