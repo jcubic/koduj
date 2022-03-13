@@ -21,9 +21,18 @@
          });
      });
      (log => {
+         function is_plain_object(object) {
+             return object && typeof object === 'object' && object.constructor === Object;
+         }
          function repr(object) {
              if (object) {
                  if (typeof object === 'object') {
+                     if (Array.isArray(object)) {
+                         return JSON.stringify(object);
+                     }
+                     if (is_plain_object(object)) {
+                         return JSON.stringify(object, null, 2);
+                     }
                      var name = object.constructor.name;
                      if (name) {
                          return `#&lt;${name}&gt;`;
@@ -41,6 +50,9 @@
                  args: args.map(repr)
              });
              log.apply(console, args);
+         };
+         console.log.toString = function() {
+             return 'log() { [native code] }';
          };
      })(console.log);
     </script>
