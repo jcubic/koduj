@@ -595,7 +595,7 @@ function draw() {
  // ref: https://stackoverflow.com/q/67322922/387194
  var __EVAL = (s) => {
      const window = frame.contentWindow;
-     return window.eval(`void (__EVAL = ${__EVAL}); ${s}`);
+     return window.eval(`void (__EVAL = ${__EVAL.toString()}); ${s}`);
  };
 
   function repr(object) {
@@ -692,8 +692,9 @@ function draw() {
                  this.clear();
                  this.echo('JavaScript Console');
              }
-         }, repl((code) => __EVAL(code))], {
+         }, repl((code) => frame.contentWindow.__EVAL(code))], {
              greetings: 'JavaScript Console',
+             outputLimit: 200,
              completion: Object.keys(frame.contentWindow)
          });
      });
