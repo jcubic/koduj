@@ -296,6 +296,9 @@ $origin = origin();
          color: var(--background, #000) !important;
          text-decoration: none;
      }
+     #download {
+        display: none; /* temporary */
+     }
     </style>
     <link href="https://cdn.jsdelivr.net/combine/npm/prismjs/themes/prism-coy.css,npm/jquery.terminal/css/jquery.terminal.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/jquery"></script>
@@ -344,7 +347,7 @@ $origin = origin();
   <div class="output-wrapper">
     <div class="tabs">
       <ul>
-        <li class="active"><a href="#">Preview</a></li>
+        <li><a href="#">Preview</a></li>
       </ul>
       <div class="content">
         <div class="output active">
