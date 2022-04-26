@@ -2,7 +2,7 @@
 /*
  *  This file is part of P5.js playground <https://p5.javascript.org.pl>
  *
- *  Copyright (C) Jakub T. Jankiewicz <https://jcubic.pl/me>
+ *  Copyright (C) 2022 Jakub T. Jankiewicz <https://jcubic.pl/me>
  */
 
 if (!is_valid_room() && !is_facebook()) {
@@ -311,7 +311,8 @@ $origin = origin();
     <script src="https://cdn.jsdelivr.net/combine/npm/jquery.terminal/js/jquery.terminal.min.js,npm/js-polyfills/keyboard.js,npm/prismjs/prism.min.js,npm/jquery.terminal/js/prism.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/prettier@2.6.2/standalone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prettier@2.6.2/parser-babel.js"></script>
     <script src="https://cdn.firebase.com/libs/firepad/1.4.0/firepad.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
@@ -330,6 +331,9 @@ $origin = origin();
         <li>
           <button id="download" class="btn">Download</button>
         </li>
+        <li>
+          <button id="format" class="btn">Format</button>
+        </li>
       </ul>
     </div>
   </nav>
@@ -340,7 +344,11 @@ $origin = origin();
         <li><a href="#">JavaScript</a></li>
       </ul>
       <div class="content">
-        <div class="js-editor editor active"></div>
+        <div class="js-editor editor active">
+          <div class="errors">
+            <ul></ul>
+          </div>
+        </div>
       </div>
     </div>
   </aside>
@@ -668,6 +676,11 @@ function draw() {
          state.firepad.setText(state.innput);
          return false;
      });
+     $('#format').on('click', function() {
+         if (state.formatted) {
+             state.firepad.setText(state.formatted);
+         }
+     });
      $('#download').on('click', function() {
          const zip = new JSZip();
          const game = zip.folder("p5");
@@ -748,9 +761,9 @@ function draw() {
              }
          }
      });
-     
+
      state.editors.input.on('change', debounce(update, 800));
-     
+
      if (state.dev_mode !== undefined) {
          toggle_dev_mode(state.dev_mode);
          $dev_toggle.prop('checked', state.dev_mode);
@@ -808,11 +821,21 @@ function draw() {
 
      async function update() {
          clear_error('.output');
+         clear_error('.js-editor');
          state.input = state.editors.input.getValue();
-         state.javascript = get_javascript(state.input);
-         await set_idb();
-         term && term.exec('reset', true);
-         frame.src = `./__idb__/${HTML_FILE}`;
+         try {
+             state.formatted = null;
+             state.formatted = prettier.format(state.input, {
+                 parser: "babel",
+                 plugins: prettierPlugins,
+             });
+             state.javascript = get_javascript(state.input);
+             await set_idb();
+             term && term.exec('reset', true);
+             frame.src = `./__idb__/${HTML_FILE}`;
+         } catch(e) {
+             error('.js-editor', e.message);
+         }
      }
 
      function get_javascript(input) {
