@@ -44,7 +44,7 @@ function generate_name() {
 }
 
 function self_url() {
-    return origin() . strtok($_SERVER[REQUEST_URI], '?');
+    return origin() . strtok($_SERVER['REQUEST_URI'], '?');
 }
 
 function origin() {
@@ -127,6 +127,17 @@ $origin = origin();
      }
      .tabs, .firepad {
          height: 100%;
+     }
+     .tabs {
+         position: relative;
+     }
+     .position-status {
+         font-family: sans-serif;
+         position: absolute;
+         top: 0;
+         right: 0;
+         color: white;
+         padding: 10px;
      }
      .tabs > ul {
          padding: 5px 10px 0 5px;
@@ -357,6 +368,7 @@ $origin = origin();
       <ul>
         <li><a href="#">Preview</a></li>
       </ul>
+      <div class="position-status"></div>
       <div class="content">
         <div class="output active">
           <iframe id="frame"></iframe>
@@ -749,6 +761,8 @@ function draw() {
      state.firepad = Firepad.fromCodeMirror(roomRef, state.editors.input, {
          defaultText: state.input
      });
+
+     var status = $('.position-status');
      window.addEventListener('message', async function(event) {
          const { data } = event;
          if (data) {
@@ -758,6 +772,9 @@ function draw() {
                  data.args.forEach(arg => {
                      term.echo(arg);
                  });
+             } else if (data.type === 'mousemove') {
+                 const { x, y } = data;
+                 status.text(`x: ${x}, y: ${y}`);
              }
          }
      });
@@ -827,6 +844,7 @@ function draw() {
              state.formatted = null;
              state.formatted = prettier.format(state.input, {
                  parser: "babel",
+                 tabWidth: 4,
                  plugins: prettierPlugins,
              });
              state.javascript = get_javascript(state.input);
