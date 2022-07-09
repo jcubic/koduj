@@ -63,6 +63,21 @@
              return 'log() { [native code] }';
          };
      })(console.log);
+     function __screenshot__() {
+         const canvas = document.querySelector('canvas');
+         canvas.toBlob(function(blob) {
+             const url = URL.createObjectURL(blob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = 'Canvas.png';
+             document.body.appendChild(a);
+             a.click();
+             setTimeout(() => {
+                 a.remove();
+                 URL.revokeObjectURL(url);
+             }, 0);
+         });
+     }
       // ref: https://stackoverflow.com/q/67322922/387194
      var __EVAL = (s) => {
         return eval(`void (__EVAL = ${__EVAL.toString()}); ${s}`);

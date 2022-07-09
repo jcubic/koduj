@@ -346,6 +346,8 @@ $origin = origin();
           <button id="help" class="btn">Help</button>
         </li>
         <li>
+          <button id="screenshot" class="btn">Screenshot</button>
+        <li>
           <button id="reset" class="btn">Reset</button>
         </li>
         <li style="display: none">
@@ -380,7 +382,7 @@ $origin = origin();
         <div class="position-status"></div>
         <div class="content">
           <div class="output active">
-            <iframe id="frame"></iframe>
+            <iframe id="sketch"></iframe>
             <div class="errors">
               <ul></ul>
             </div>
@@ -721,6 +723,10 @@ function draw() {
              height: window.innerHeight - 200
          });
      });
+     $('#screenshot').click(() => {
+         sketch.contentWindow.__screenshot__();
+     });
+
      let console_splitter;
 
      var $dev_toggle = $('#console-mode').on('change', function() {
@@ -733,7 +739,7 @@ function draw() {
         command: true
      };
      let term;
-     $('iframe').on('load', () => {
+     $('#sketch').on('load', () => {
          term = $('#term').terminal([{
              reset: function() {
                  this.clear();
@@ -742,7 +748,7 @@ function draw() {
          }, repl((code) => frame.contentWindow.__EVAL(code))], {
              greetings: 'JavaScript Console',
              outputLimit: 200,
-             completion: Object.keys(frame.contentWindow)
+             completion: Object.keys(sketch.contentWindow)
          });
      });
 
@@ -869,7 +875,7 @@ function draw() {
              state.javascript = get_javascript(state.input);
              await set_idb();
              term && term.exec('reset', true);
-             frame.src = `./__idb__/${HTML_FILE}`;
+             sketch.src = `./__idb__/${HTML_FILE}`;
          } catch(e) {
              error('.js-editor', e.message);
          }
