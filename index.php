@@ -307,8 +307,14 @@ $origin = origin();
          color: var(--background, #000) !important;
          text-decoration: none;
      }
-     #download {
-        display: none; /* temporary */
+     #help-modal {
+         padding: 0;
+     }
+     .ui-dialog.ui-front {
+         z-index: 1000;
+     }
+     .ui-dialog .ui-dialog-titlebar {
+         border-radius: 6px 6px 0 0;
      }
     </style>
     <link href="https://cdn.jsdelivr.net/combine/npm/prismjs/themes/prism-coy.css,npm/jquery.terminal/css/jquery.terminal.min.css" rel="stylesheet" />
@@ -337,9 +343,12 @@ $origin = origin();
           <input type="checkbox" id="console-mode"/>
         </li>
         <li>
-          <button id="reset" class="btn">Reset</button>
+          <button id="help" class="btn">Help</button>
         </li>
         <li>
+          <button id="reset" class="btn">Reset</button>
+        </li>
+        <li style="display: none">
           <button id="download" class="btn">Download</button>
         </li>
         <li>
@@ -349,49 +358,52 @@ $origin = origin();
     </div>
   </nav>
   <main>
-  <aside class="editor-wrapper">
-    <div class="tabs user-input">
-      <ul>
-        <li><a href="#">JavaScript</a></li>
-      </ul>
-      <div class="content">
-        <div class="js-editor editor active">
-          <div class="errors">
-            <ul></ul>
+    <aside class="editor-wrapper">
+      <div class="tabs user-input">
+        <ul>
+          <li><a href="#">JavaScript</a></li>
+        </ul>
+        <div class="content">
+          <div class="js-editor editor active">
+            <div class="errors">
+              <ul></ul>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </aside>
-  <div class="output-wrapper">
-    <div class="tabs">
-      <ul>
-        <li><a href="#">Preview</a></li>
-      </ul>
-      <div class="position-status"></div>
-      <div class="content">
-        <div class="output active">
-          <iframe id="frame"></iframe>
-          <div class="errors">
-            <ul></ul>
+    </aside>
+    <div class="output-wrapper">
+      <div class="tabs">
+        <ul>
+          <li><a href="#">Preview</a></li>
+        </ul>
+        <div class="position-status"></div>
+        <div class="content">
+          <div class="output active">
+            <iframe id="frame"></iframe>
+            <div class="errors">
+              <ul></ul>
+            </div>
           </div>
         </div>
       </div>
+      <div class="dev hidden">
+        <div id="term"></div>
+      </div>
     </div>
-    <div class="dev hidden">
-      <div id="term"></div>
-    </div>
+  </main>
+  <footer>
+    <p>
+      Copyright (C) 2022 <a href="https://jakub.jankiewicz.org">Jakub T. Jankiewicz</a>
+      <a href="https://github.com/jcubic/p5">Source Code</a>
+    </p>
+  </footer>
+  <div id="help-modal" style="display: none">
+    <iframe src="https://p5js.org/reference/"></iframe>
   </div>
-</main>
-<footer>
-  <p>
-    Copyright (C) 2022 <a href="https://jakub.jankiewicz.org">Jakub T. Jankiewicz</a>
-    <a href="https://github.com/jcubic/p5">Source Code</a>
-  </p>
-</footer>
 <script type="text/x-template" id="main_code">
-function main() {
-    {{CODE}}
+  function main() {
+  {{CODE}}
 }
 </script>
 <script type="text/x-template" id="template_code">
@@ -702,6 +714,13 @@ function draw() {
              download(content, "p5.zip");
          });
      });
+     $('#help').on('click', function() {
+         $('#help-modal').dialog({
+             title: 'Help',
+             width: window.innerWidth * 2/3,
+             height: window.innerHeight - 200
+         });
+     });
      let console_splitter;
 
      var $dev_toggle = $('#console-mode').on('change', function() {
@@ -883,6 +902,9 @@ owa_cmds.push(['trackClicks']);
 //]]>
 </script>
 <!-- End Open Web Analytics Code -->
+<link href="./jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<script defer async src="./jquery-ui/jquery-ui.min.js"></script>
 <script defer async src="https://cdn.jsdelivr.net/npm/jszip"></script>
+
 </body>
 </html>
