@@ -1,6 +1,9 @@
-## P5.js Playground
+<h1 align="center">
+  <img src="https://github.com/jcubic/koduj/blob/master/assets/logo.svg?raw=true"
+       alt="Logo of Koduj p5.js coding platform" />
+</h1>
 
-This very simple playground created for teaching programming.
+Right now it's very simple playground created for teaching programming.
 As first intro to programming use plotting functions.
 
 You can introduce mathematical functions:
