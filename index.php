@@ -631,7 +631,7 @@ function draw() {
 
  // ref: https://stackoverflow.com/q/67322922/387194
  var __EVAL = (s) => {
-     const window = frame.contentWindow;
+     const window = sketch.contentWindow;
      return window.eval(`void (__EVAL = ${__EVAL.toString()}); ${s}`);
  };
 
@@ -745,7 +745,7 @@ function draw() {
                  this.clear();
                  this.echo('JavaScript Console');
              }
-         }, repl((code) => frame.contentWindow.__EVAL(code))], {
+         }, repl((code) => sketch.contentWindow.__EVAL(code))], {
              greetings: 'JavaScript Console',
              outputLimit: 200,
              completion: Object.keys(sketch.contentWindow)
