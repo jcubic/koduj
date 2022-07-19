@@ -350,7 +350,7 @@ $origin = origin();
         <li>
           <button id="reset" class="btn">Reset</button>
         </li>
-        <li style="display: none">
+        <li>
           <button id="download" class="btn">Download</button>
         </li>
         <li>
@@ -711,7 +711,10 @@ function draw() {
          const zip = new JSZip();
          const game = zip.folder("p5");
          game.file("index.js", state.javascript);
-         game.file("index.html", state.html);
+         game.file("index.html", template(html, {
+             FILE: 'index.js',
+             HTML: get_includes()
+         }));
          zip.generateAsync({ type:"blob" }).then(function(content) {
              download(content, "p5.zip");
          });
@@ -759,14 +762,15 @@ function draw() {
      const SCRIPT_FILE = '_p5.js';
      const HTML_FILE = '_p5.html'
 
-     const html = template(await fetch_text('./base.html'), {
-         HTML: get_includes()
-     });
+     const html = await fetch_text('./base.html');
 
      const state = {
          dev_mode: ls.get(DEV_MODE),
          input: await load_base(),
-         html,
+         html: template(html, {
+             FILE: SCRIPT_FILE,
+             HTML: get_includes()
+         }),
          editors: {}
      };
      window.state = state;
