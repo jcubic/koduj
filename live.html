@@ -68,4 +68,13 @@
  var __EVAL = (s) => {
      return eval(`void (__EVAL = ${__EVAL.toString()}); ${s}`);
  };
+ if ('P5Capture' in window) {
+     P5Capture.setDefaultOptions({
+         disableUi: true,
+         format: "gif",
+         framerate: 30,
+         quality: 0.5,
+     });
+     var __recorder__ = P5Capture.getInstance();
+ }
 </script>

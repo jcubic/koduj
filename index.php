@@ -347,6 +347,10 @@ $origin = origin();
         </li>
         <li>
           <button id="screenshot" class="btn">Screenshot</button>
+        </li>
+        <li>
+          <button id="record" class="btn">Record</button>
+        </li>
         <li>
           <button id="reset" class="btn">Reset</button>
         </li>
@@ -526,12 +530,17 @@ function draw() {
  }
 
  function get_includes() {
+     var scripts = [
+         'https://cdn.jsdelivr.net/npm/p5.capture/dist/p5.capture.umd.min.js'
+     ];
      if (query.include) {
-         return query.include.split(',').map(file => {
-             return `<script src="${root}${file}"></` + 'script>';
-         }).join('');
+         scripts =  scripts.concat(query.include.split(',').map(file => {
+             return `${root}${file}`;
+         }));
      }
-     return '';
+     return scripts.map(url => {
+         return `<script src="${url}"></` + 'script>';
+     }).join('');
  }
 
  async function get_live_html() {
@@ -734,6 +743,17 @@ function draw() {
      });
      $('#screenshot').click(() => {
          sketch.contentWindow.__screenshot__();
+     });
+     var record = false;
+     $('#record').click(function() {
+         if (record) {
+             sketch.contentWindow.__recorder__.stop();
+             $(this).text('Record');
+         } else {
+             sketch.contentWindow.__recorder__.start();
+             $(this).text('Stop');
+         }
+         record = !record;
      });
 
      let console_splitter;
