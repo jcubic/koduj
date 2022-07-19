@@ -709,9 +709,9 @@ function draw() {
      });
      $('#download').on('click', function() {
          const zip = new JSZip();
-         const game = zip.folder("p5");
-         game.file("index.js", state.javascript);
-         game.file("index.html", template(html, {
+         const dir = zip.folder("p5");
+         dir.file("index.js", state.javascript);
+         dir.file("index.html", template(html, {
              FILE: 'index.js',
              HTML: get_includes()
          }));
