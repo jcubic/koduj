@@ -1,0 +1,71 @@
+<script>
+ window.addEventListener('error', function(e) {
+     const { message, colno, lineno } = e;
+     window.parent.postMessage({
+         type: 'error',
+         message,
+         colno,
+         lineno
+     });
+ });
+ document.body.addEventListener('mousemove', (e) => {
+     if (e.target.closest('canvas')) {
+         const { offsetX: x, offsetY: y } = e;
+         window.parent.postMessage({ type: 'mousemove', x, y });
+     }
+ });
+ (log => {
+     function is_plain_object(object) {
+         return object && typeof object === 'object' && object.constructor === Object;
+     }
+     function repr(object) {
+         if (object) {
+             if (typeof object === 'object') {
+                 if (Array.isArray(object)) {
+                     return JSON.stringify(object);
+                 }
+                 if (is_plain_object(object)) {
+                     return JSON.stringify(object, null, 2);
+                 }
+                 var name = object.constructor.name;
+                 if (name) {
+                     return `#&lt;${name}&gt;`;
+                 } else {
+                     return object.toString();
+                 }
+             } else {
+                 return new String(object);
+             }
+         }
+     }
+     console.log = function(...args) {
+         window.parent.postMessage({
+             type: 'echo',
+             args: args.map(repr)
+         });
+         log.apply(console, args);
+     };
+     console.log.toString = function() {
+         return 'log() { [native code] }';
+     };
+ })(console.log);
+ function __screenshot__() {
+     const canvas = document.querySelector('canvas');
+     canvas.toBlob(function(blob) {
+         const url = URL.createObjectURL(blob);
+         const a = document.createElement('a');
+         a.href = url;
+         a.download = 'Canvas.png';
+         document.body.appendChild(a);
+         a.click();
+         setTimeout(() => {
+             a.remove();
+             URL.revokeObjectURL(url);
+         }, 0);
+     });
+ }
+ // ref: https://stackoverflow.com/q/67322922/387194
+ var __EVAL = (s) => {
+     return eval(`void (__EVAL = ${__EVAL.toString()}); ${s}`);
+ };
+</script>

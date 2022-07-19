@@ -534,6 +534,12 @@ function draw() {
      return '';
  }
 
+ async function get_live_html() {
+     const includes = get_includes();
+     const html = await fetch_text('./live.html');
+     return [includes, html].join('\n').trim();
+ }
+
  function fetch_text(url) {
      return fetch(url).then(res => res.text());
  }
@@ -769,7 +775,7 @@ function draw() {
          input: await load_base(),
          html: template(html, {
              FILE: SCRIPT_FILE,
-             HTML: get_includes()
+             HTML: await get_live_html()
          }),
          editors: {}
      };
