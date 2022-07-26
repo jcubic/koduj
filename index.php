@@ -546,7 +546,7 @@ function draw() {
  async function get_live_html() {
      const includes = get_includes();
      const html = await fetch_text('./live.html');
-     return [includes, html].join('\n').trim();
+     return [includes, html].join('\n').trim() + '\n';
  }
 
  function fetch_text(url) {
