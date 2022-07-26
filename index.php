@@ -529,8 +529,8 @@ function draw() {
      return get_from_query(query.base);
  }
 
- function get_includes() {
-     var scripts = [
+ function get_includes(defaults) {
+     var scripts = defaults || [
          'https://cdn.jsdelivr.net/npm/p5.capture/dist/p5.capture.umd.min.js'
      ];
      if (query.include) {
@@ -728,7 +728,7 @@ function draw() {
          dir.file("index.js", state.javascript);
          dir.file("index.html", template(html, {
              FILE: 'index.js',
-             HTML: get_includes()
+             HTML: ''
          }));
          zip.generateAsync({ type:"blob" }).then(function(content) {
              download(content, "p5.zip");
