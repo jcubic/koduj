@@ -25,8 +25,8 @@ function f(x) {
 ```
 
 And plot.js script that is hidden with help of coord.js will plot that function.
-After the person get familiar with functions (connected to her/him knowledge about
-functions in math) he can learn more about P5.js.
+After the person get familiar with functions (connected to her/his knowledge about
+functions in math) he can learn more about JavaScript and P5.js.
 
 
 ## License
