@@ -777,6 +777,7 @@ function draw() {
          }, repl((code) => sketch.contentWindow.__EVAL(code))], {
              greetings: 'JavaScript Console',
              outputLimit: 200,
+             enabled: false,
              completion: Object.keys(sketch.contentWindow)
          });
      });
