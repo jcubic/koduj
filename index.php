@@ -104,7 +104,7 @@ $origin = origin();
         background-size: contain;
      }
      main {
-         height: calc(100vh - 27px - 44px);
+         height: calc(100vh - 30px - 44px);
      }
      iframe {
          border: none;
