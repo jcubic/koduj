@@ -19,7 +19,7 @@
          return object && typeof object === 'object' && object.constructor === Object;
      }
      function repr(object) {
-         if (object) {
+         if (typeof object !== 'undefined') {
              if (typeof object === 'object') {
                  if (Array.isArray(object)) {
                      return JSON.stringify(object);
