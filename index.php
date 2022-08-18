@@ -331,6 +331,8 @@ $origin = origin();
     <script src="https://cdn.jsdelivr.net/npm/prettier@2.6.2/standalone.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prettier@2.6.2/parser-babel.js"></script>
     <script src="https://cdn.firebase.com/libs/firepad/1.4.0/firepad.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/combine/gh/jcubic/static/js/esprima.min.js,gh/jcubic/static/js/estraverse.min.js,gh/jcubic/static/js/escodegen.min.js"></script>
+    <script src="loop_guards.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body>
@@ -742,15 +744,15 @@ function draw() {
          });
      });
      $('#screenshot').click(() => {
-         sketch.contentWindow.__screenshot__();
+         sketch.contentWindow.__koduj__.screenshot();
      });
      var record = false;
      $('#record').click(function() {
          if (record) {
-             sketch.contentWindow.__recorder__.stop();
+             sketch.contentWindow.__koduj__.recorder.stop();
              $(this).text('Record');
          } else {
-             sketch.contentWindow.__recorder__.start();
+             sketch.contentWindow.__koduj__.recorder.start();
              $(this).text('Stop');
          }
          record = !record;
@@ -903,7 +905,7 @@ function draw() {
                  tabWidth: 4,
                  plugins: prettierPlugins,
              });
-             state.javascript = get_javascript(state.input);
+             state.javascript = get_javascript(guard_loops(state.input));
              await set_idb();
              term && term.exec('reset', true);
              sketch.src = `./__idb__/${HTML_FILE}`;
@@ -942,6 +944,5 @@ owa_cmds.push(['trackClicks']);
 <link href="./jquery-ui/jquery-ui.min.css" rel="stylesheet" />
 <script defer async src="./jquery-ui/jquery-ui.min.js"></script>
 <script defer async src="https://cdn.jsdelivr.net/npm/jszip"></script>
-
 </body>
 </html>

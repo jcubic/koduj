@@ -49,21 +49,62 @@
          return 'log() { [native code] }';
      };
  })(console.log);
- function __screenshot__() {
-     const canvas = document.querySelector('canvas');
-     canvas.toBlob(function(blob) {
-         const url = URL.createObjectURL(blob);
-         const a = document.createElement('a');
-         a.href = url;
-         a.download = 'Canvas.png';
-         document.body.appendChild(a);
-         a.click();
-         setTimeout(() => {
-             a.remove();
-             URL.revokeObjectURL(url);
-         }, 0);
-     });
- }
+
+ // loop guard code inspired by Codepen
+ const __koduj__ = {
+     loops: {},
+     _get_time() {
+         return +new Date;
+     },
+     _config: {
+         loop_threshold: 500,
+         loop_timeout: 200
+     },
+     should_break_loop(id) {
+         if (!this.loops[id]) {
+             this.loops[id] = {
+                 start: this._get_time(),
+                 count: 1
+             };
+             return false;
+         } else {
+             const now = this._get_time();
+             const { start } = this.loops[id];
+             const count = ++this.loops[id].count;
+             if (count > this._config.loop_threshold) {
+                 const stop = now - start > this._config.loop_timeout;
+                 if (stop) {
+                     window.parent.postMessage({
+                         type: 'error',
+                         message: `Infinite Loop detected! (${id})`,
+                         colno: null,
+                         lineno: null
+                     });
+                 }
+                 return stop;
+             }
+             return false;
+         }
+     },
+     exit_loop(id) {
+         delete this.loops[id];
+     },
+     screenshot() {
+         const canvas = document.querySelector('canvas');
+         canvas.toBlob(function(blob) {
+             const url = URL.createObjectURL(blob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = 'Canvas.png';
+             document.body.appendChild(a);
+             a.click();
+             setTimeout(() => {
+                 a.remove();
+                 URL.revokeObjectURL(url);
+             }, 0);
+         });
+     }
+ };
  // ref: https://stackoverflow.com/q/67322922/387194
  var __EVAL = (s) => {
      return eval(`void (__EVAL = ${__EVAL.toString()}); ${s}`);
@@ -75,6 +116,6 @@
          framerate: 30,
          quality: 0.5,
      });
-     var __recorder__ = P5Capture.getInstance();
+     __koduj__.recorder = P5Capture.getInstance();
  }
 </script>
