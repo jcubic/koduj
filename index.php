@@ -316,6 +316,14 @@ $origin = origin();
      .ui-dialog .ui-dialog-titlebar {
          border-radius: 6px 6px 0 0;
      }
+     .color-picker {
+         display: inline-block;
+     }
+     .ui-dialog .ui-dialog-content {
+         box-sizing: border-box;
+         width: 100% !important;
+         height: calc(100% - 41px) !important;
+     }
     </style>
     <link href="https://cdn.jsdelivr.net/combine/npm/prismjs/themes/prism-coy.css,npm/jquery.terminal/css/jquery.terminal.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/jquery"></script>
@@ -349,6 +357,9 @@ $origin = origin();
         </li>
         <li>
           <button id="screenshot" class="btn">Screenshot</button>
+        </li>
+        <li>
+          <button id="color" class="btn">Color</button>
         </li>
         <li>
           <button id="record" class="btn">Record</button>
@@ -757,6 +768,32 @@ function draw() {
          }
          record = !record;
      });
+     $('#color').click(function() {
+         const div = $('<div><div class="color-picker"></div><input/></div>');
+         const input = div.find('input');
+         const colorWheel = new ReinventedColorWheel({
+             appendTo: div.find('.color-picker').get(0),
+             rgb: [100, 0, 0],
+             wheelDiameter: 200,
+             wheelThickness: 20,
+             handleDiameter: 16,
+             wheelReflectsSaturation: false,
+             onChange: function (color) {
+                 input.val(`color(${color.rgb.join(', ')})`);
+             }
+         });
+         colorWheel.onChange(colorWheel);
+         div.dialog({
+             title: 'Color Picker',
+             width: 243,
+             height: 294,
+             resizable: false,
+             close: function (e) {
+                 $(this).empty();
+                 $(this).dialog('destroy');
+             }
+         });
+     });
 
      let console_splitter;
 
@@ -924,7 +961,7 @@ function draw() {
  })(jQuery);
 </script>
 <!-- Start Open Web Analytics Tracker -->
-<script type="text/javascript">
+<script defer async type="text/javascript">
 //<![CDATA[
 var owa_baseUrl = 'https://stats.jcubic.pl/';
 var owa_cmds = owa_cmds || [];
@@ -942,7 +979,9 @@ owa_cmds.push(['trackClicks']);
 </script>
 <!-- End Open Web Analytics Code -->
 <link href="./jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/reinvented-color-wheel/css/reinvented-color-wheel.min.css" rel="stylesheet" />
 <script defer async src="./jquery-ui/jquery-ui.min.js"></script>
 <script defer async src="https://cdn.jsdelivr.net/npm/jszip"></script>
+<script defer async src="https://cdn.jsdelivr.net/npm/reinvented-color-wheel"></script>
 </body>
 </html>
