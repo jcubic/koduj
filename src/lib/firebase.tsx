@@ -9,7 +9,24 @@ import {
   GithubAuthProvider,
   FacebookAuthProvider,
   GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore, collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
+
+import {
+  getFirestore,
+  doc,
+  DocumentData,
+  runTransaction,
+  onSnapshot,
+  collection,
+  addDoc,
+  QuerySnapshot,
+  deleteDoc,
+  DocumentReference,
+  getDoc,
+  orderBy,
+  getDocs,
+  query,
+  where
+} from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -73,4 +90,92 @@ export function useUserData() {
   }, [user]);
 
   return { user, username };
+}
+
+export function updateUser(username: string, user: User) {
+  const { uid } = user;
+  const userDocRef = doc(firestore, `users/${uid}`);
+  const usernameDocRef = doc(firestore, `usernames/${username}`);
+  return runTransaction(firestore, async (transaction) => {
+    transaction.update(userDocRef, { username });
+    transaction.update(usernameDocRef, { uid });
+  });
+}
+
+interface IUser {
+  username: string;
+  displayName: string;
+  [key: string]: any;
+}
+
+export async function getUsers() {
+  const usersRef = collection(firestore, 'users');
+  return retriveUsers(await getDocs(usersRef));
+}
+
+type UserData = DocumentData & {id: string};
+
+async function retriveUsers(snapshot: QuerySnapshot) {
+  const users: Array<UserData> = [];
+  snapshot.docs.forEach(doc => {
+    users.push({...doc.data(), id: doc.id});
+  });
+  return users;
+}
+
+type userDataCallback = (data: UserData[]) => void
+
+function onUserSnapshot(ref: any, callback: userDataCallback): void {
+  onSnapshot(ref, async (snapshot: QuerySnapshot) => {
+    const users = await retriveUsers(snapshot);
+    callback(users);
+  });
+}
+
+
+export async function onUsers(callback: (data: UserData[]) => void) {
+  const usersRef = collection(firestore, 'users');
+  onUserSnapshot(usersRef, callback);
+}
+
+export async function setUserSettings(user: User, settings: IUser) {
+  const { uid } = user;
+  const userRef = doc(firestore, 'users', uid);
+  const usernameRef = doc(firestore, 'usernames', settings.username);
+  const userDoc = await getDoc(userRef);
+  const username = userDoc.exists() ? userDoc.data().username : null;
+  const oldUsernameRef = username && doc(firestore, 'usernames', username);
+  return runTransaction(firestore, async (transaction) => {
+    const sfUserDoc = await transaction.get(userRef);
+    const sfUsernameDoc = await transaction.get(usernameRef);
+    if (sfUsernameDoc.exists()) {
+      throw new Error('User already exists');
+    } else {
+      if (oldUsernameRef && settings.username !== username) {
+        transaction.delete(oldUsernameRef);
+      }
+      transaction.set(usernameRef, { uid });
+    }
+    if (sfUserDoc.exists()) {
+      transaction.update(userRef, settings);
+    } else {
+      transaction.set(userRef, settings);
+    }
+  });
+}
+
+export async function getUser(uid: string) {
+  const usersRef = doc(firestore, 'users', uid);
+  const snapshot = await getDoc(usersRef);
+  return snapshot.data();
+}
+
+export async function onUserFilter(name: string, callback: userDataCallback) {
+  const usersRef = collection(firestore, 'users');
+  const q = query(
+    usersRef,
+    where('displayName', '==', name),
+    orderBy('displayName')
+  );
+  onUserSnapshot(q, callback);
 }
