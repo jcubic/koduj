@@ -8,11 +8,8 @@ import {
   useUserData,
   onUsers,
   IUser,
-  onUserFilter,
   setUserSettings,
   auth,
-  updateUser,
-  getUsers,
   getUser
 } from './lib/firebase';
 import { DocumentData } from 'firebase/firestore';
@@ -66,18 +63,14 @@ function LogoutButton() {
 }
 
 function SettingsForm() {
-  const { register, reset, handleSubmit } = useForm();
+  const { register, reset, handleSubmit } = useForm<IUser>();
   const [users, setUsers] = useState<Array<IUser>>();
   const [data, setData] = useState<DocumentData>();
   const {username, user} = useContext(UserContext);
 
   useEffect(() => {
     if (user) {
-      console.log(username);
-      getUser(user.uid).then(data => {
-        console.log(data);
-        setData(data);
-      });
+      getUser(user.uid).then(setData);
     }
   }, [user]);
 
@@ -91,7 +84,7 @@ function SettingsForm() {
     }
   }, [data]);
 
-  const onSubmit = handleSubmit((data: IUser) => {
+  const onSubmit = handleSubmit(data => {
     if (user) {
       setUserSettings(user, data);
     }

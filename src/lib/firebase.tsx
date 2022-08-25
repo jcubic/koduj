@@ -92,20 +92,10 @@ export function useUserData() {
   return { user, username };
 }
 
-export function updateUser(username: string, user: User) {
-  const { uid } = user;
-  const userDocRef = doc(firestore, `users/${uid}`);
-  const usernameDocRef = doc(firestore, `usernames/${username}`);
-  return runTransaction(firestore, async (transaction) => {
-    transaction.update(userDocRef, { username });
-    transaction.update(usernameDocRef, { uid });
-  });
-}
-
-interface IUser {
+export interface IUser {
+  id: string;
   username: string;
   displayName: string;
-  [key: string]: any;
 }
 
 export async function getUsers() {
@@ -116,14 +106,14 @@ export async function getUsers() {
 type UserData = DocumentData & {id: string};
 
 async function retriveUsers(snapshot: QuerySnapshot) {
-  const users: Array<UserData> = [];
+  const users: Array<IUser> = [];
   snapshot.docs.forEach(doc => {
-    users.push({...doc.data(), id: doc.id});
+    users.push({...doc.data(), id: doc.id} as IUser);
   });
   return users;
 }
 
-type userDataCallback = (data: UserData[]) => void
+type userDataCallback = (data: IUser[]) => void
 
 function onUserSnapshot(ref: any, callback: userDataCallback): void {
   onSnapshot(ref, async (snapshot: QuerySnapshot) => {
@@ -133,12 +123,12 @@ function onUserSnapshot(ref: any, callback: userDataCallback): void {
 }
 
 
-export async function onUsers(callback: (data: UserData[]) => void) {
+export async function onUsers(callback: userDataCallback) {
   const usersRef = collection(firestore, 'users');
   onUserSnapshot(usersRef, callback);
 }
 
-export async function setUserSettings(user: User, settings: IUser) {
+export async function setUserSettings(user: User, settings: Required<IUser>) {
   const { uid } = user;
   const userRef = doc(firestore, 'users', uid);
   const usernameRef = doc(firestore, 'usernames', settings.username);
