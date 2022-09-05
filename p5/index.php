@@ -845,19 +845,15 @@ function draw() {
         animation: true,
         command: true
      };
-     let term;
-     $('#sketch').on('load', () => {
-         term = $('#term').terminal([{
-             reset: function() {
-                 this.clear();
-                 this.echo('JavaScript Console');
-             }
-         }, repl((code) => sketch.contentWindow.__EVAL(code))], {
-             greetings: 'JavaScript Console',
-             outputLimit: 200,
-             enabled: false,
-             completion: Object.keys(sketch.contentWindow)
-         });
+     const term = $('#term').terminal([{
+         reset: function() {
+             this.clear();
+             this.echo('JavaScript Console');
+         }
+     }, repl((code) => sketch.contentWindow.__EVAL(code))], {
+         greetings: 'JavaScript Console',
+         outputLimit: 200,
+         enabled: false
      });
 
      const { get, set } = idbKeyval;

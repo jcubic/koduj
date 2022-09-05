@@ -8,6 +8,14 @@
          lineno
      });
  });
+ window.addEventListener('unhandledrejection', function(event) {
+     window.parent.postMessage({
+         type: 'error',
+         colno: null,
+         lineno: null,
+         message: `Unhandled promise rejection ${event.reason.message}`
+     });
+ });
  document.body.addEventListener('mousemove', (e) => {
      if (e.target.closest('canvas')) {
          const { offsetX: x, offsetY: y } = e;
