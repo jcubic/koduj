@@ -322,6 +322,8 @@ $origin = origin();
      .ui-dialog .ui-dialog-content {
          box-sizing: border-box;
          width: 100% !important;
+     }
+     .ui-dialog.color .ui-dialog-content {
          height: calc(100% - 41px) !important;
      }
     </style>
@@ -704,6 +706,7 @@ function draw() {
    return typeof object === 'function';
  }
 
+ // taken from jQuery Terminal
  function unpromise(value, callback, error) {
    if (value !== undefined) {
      if (is_function(value.catch)) {
@@ -820,6 +823,7 @@ function draw() {
          colorWheel.onChange(colorWheel);
          div.dialog({
              title: 'Color Picker',
+             dialogClass: 'color',
              width: 243,
              height: 294,
              resizable: false,
