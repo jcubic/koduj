@@ -700,6 +700,41 @@ function draw() {
      return string;
  }
 
+ function is_function(object) {
+   return typeof object === 'function';
+ }
+
+ function unpromise(value, callback, error) {
+   if (value !== undefined) {
+     if (is_function(value.catch)) {
+       value.catch(error);
+     }
+     if (is_function(value.done)) {
+       return value.done(callback);
+     } else if (is_function(value.then)) {
+       return value.then(callback);
+     } else if (value instanceof Array) {
+       var promises = value.filter(function(value) {
+         return value && (is_function(value.done) || is_function(value.then));
+       });
+       if (promises.length) {
+         var result = $.when.apply($, value).then(function() {
+           return callback([].slice.call(arguments));
+         });
+         if (is_function(result.catch)) {
+           result = result.catch(error);
+         }
+         return result;
+       }
+     }
+     // TODO: investigate why it break when called
+     //       when value is undefined
+     //       when moving this line outside if
+     //       it breaks all completion unit tests
+     return callback(value);
+   }
+ }
+
  (async function($) {
      const firebase_config = {
          apiKey: "AIzaSyD6lTSZ09MvFeDXL7vAXf7v3u7s32e9jG0",
@@ -870,6 +905,19 @@ function draw() {
              } else if (data.type === 'mousemove') {
                  const { x, y } = data;
                  status.text(`x: ${x}, y: ${y}`);
+             } else if (data.type === 'rpc') {
+                 const m = data.method.match(/terminal::(.+)/);
+                 const id = data.id;
+                 let iframe = sketch.contentWindow;
+                 if (m) {
+                     const method = m[1];
+                     const result = term[method](...data.params);
+                     unpromise(result, function(result) {
+                         iframe.postMessage({ type: 'rpc', id, result });
+                     }, function(error) {
+                         iframe.postMessage({ type: 'rpc', id, error });
+                     });
+                 }
              }
          }
      });
