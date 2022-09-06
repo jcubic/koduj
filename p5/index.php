@@ -913,7 +913,11 @@ function draw() {
                      const method = m[1];
                      const result = term[method](...data.params);
                      unpromise(result, function(result) {
-                         iframe.postMessage({ type: 'rpc', id, result });
+                         if (term.is(result)) {
+                             iframe.postMessage({ type: 'rpc', id });
+                         } else {
+                             iframe.postMessage({ type: 'rpc', id, result });
+                         }
                      }, function(error) {
                          iframe.postMessage({ type: 'rpc', id, error });
                      });
