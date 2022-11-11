@@ -5,7 +5,11 @@
  *  Copyright (C) 2022 Jakub T. Jankiewicz <https://jcubic.pl/me>
  */
 
-if (!is_valid_room() && !is_facebook()) {
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+if (!is_valid_room_param() && !is_facebook()) {
     $url = self_url();
     $room = generate_name();
     if (preg_match("/index.php/", $url)) {
@@ -28,11 +32,11 @@ function is_facebook() {
            strpos($_SERVER["HTTP_USER_AGENT"], "Facebot") !== false;
 }
 
-function is_valid_room() {
-    if (!isset($_GET['room']) || empty($_GET['room'])) {
+function is_valid_room_param($name = 'room') {
+    if (!isset($_GET[$name]) || empty($_GET[$name])) {
         return false;
     }
-    return preg_match("/^\w+-\w+$/", $_GET['room']);
+    return preg_match("/^\w+-\w+$/", $_GET[$name]);
 }
 
 function generate_name() {
@@ -77,7 +81,7 @@ $origin = origin();
     <link href="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/lib/codemirror.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/combine/npm/codemirror@5.x.x/addon/search/matchesonscrollbar.css,npm/codemirror@5.x.x/addon/dialog/dialog.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/npm/codemirror@5.x.x/theme/seti.css" rel="stylesheet"/>
-    <script>var room = '<?= $_GET['room'] ?>'; var root = '<?= $root ?>';</script>
+    <script>const room = '<?= $_GET['room'] ?>'; const root = '<?= $root ?>';</script>
     <style>
      :root {
          --separator: gray;
@@ -90,18 +94,30 @@ $origin = origin();
          margin: 0;
      }
      nav {
-        background: black;
-        position: relative;
-        padding: 8px 10px;
-        border-bottom: 2px solid var(--separator);
+         background: black;
+         position: relative;
+         padding: 8px 10px;
+         border-bottom: 2px solid var(--separator);
+     }
+     nav a {
+         display: inline-block;
+         padding: 1px 2px;
+     }
+     h1.fork {
+         cursor: pointer;
+     }
+     span.fork {
+         color: white;
+         font-family: sans-serif;
      }
      nav h1 {
-        margin: 0;
-        text-indent: -999999999px;
-        width: 70px;
-        height: 26px;
-        background: black url(./brand-white.svg);
-        background-size: contain;
+         margin: 0;
+         text-indent: -999999999px;
+         width: 70px;
+         height: 26px;
+         background: black url(./brand-white.svg);
+         background-size: contain;
+         display: inline-block;
      }
      main {
          height: calc(100vh - 30px - 44px);
@@ -295,12 +311,12 @@ $origin = origin();
      footer p {
          margin: 0;
      }
-     footer a[href] {
+     footer a[href], nav .fork a[href], .ui-dialog-content a[href] {
          color: #3377FF;
          color: var(--link-color, #3377FF);
          cursor: pointer;
      }
-     footer a[href]:hover {
+     footer a[href]:hover, nav .fork a[href]:hover, .ui-dialog-content a[href]:hover {
          background-color: #3377FF;
          background-color: var(--link-color, #3377FF) !important;
          color: #000;
@@ -348,6 +364,7 @@ $origin = origin();
 <body>
   <nav>
     <h1>P5.js</h1>
+    <span class="fork hidden">forked from <a class="origin"></a></span>
     <div class="config">
       <ul>
         <li class="console">
@@ -362,6 +379,9 @@ $origin = origin();
         </li>
         <li>
           <button id="color" class="btn">Color</button>
+        </li>
+        <li>
+          <a id="fork" class="btn">Fork</a>
         </li>
         <li>
           <button id="record" class="btn">Record</button>
@@ -738,6 +758,24 @@ function draw() {
    }
  }
 
+ function params(query) {
+     return new URLSearchParams(query).toString();
+ }
+
+ // ref: https://gist.github.com/jofftiquez/f60dc81b39d77cd4eb1f5b5cbe6585ad
+ function clone_firebase_record(oldRef, newRef) {
+     return new Promise((resolve, reject) => {
+          oldRef.once('value').then(snap => {
+               return newRef.set(snap.val());
+          }).then(() => {
+               resolve();
+          }).catch(err => {
+               console.log(err.message);
+               reject();
+          });
+     });
+}
+
  (async function($) {
      const firebase_config = {
          apiKey: "AIzaSyD6lTSZ09MvFeDXL7vAXf7v3u7s32e9jG0",
@@ -751,6 +789,51 @@ function draw() {
      const app = firebase.initializeApp(firebase_config);
      const database = app.database();
      const roomRef = database.ref().child(room);
+     const forksRef = database.ref(`${room}/forks`);
+
+     let fork = query.fork;
+     if (query.fork) {
+         clone_firebase_record(database.ref(`${fork}/history`), roomRef.child('history'));
+         roomRef.child('origin').set({
+             name: fork
+         });
+         const key = forksRef.push().key;
+         const updates = {};
+         updates[`${fork}/forks/${key}`] = room;
+         database.ref().update(updates);
+         delete query.fork;
+         history.replaceState(null, '', location.path + '?' + params(query));
+     }
+
+     forksRef.on('value', (snapshot) => {
+         const data = snapshot.val();
+         if (data) {
+             forks = Object.values(data);
+             $('nav > h1').addClass('fork');
+         }
+     });
+
+     $('#fork').attr('href', root + '?' + params({...query, fork: room}));
+
+     database.ref(`${room}/origin`).on('value', (snapshot) => {
+         const data = snapshot.val();
+         if (data) {
+             const link = $('span.fork').removeClass('hidden').find('.origin');
+             link.attr('href', `${root}${data.name}`).text(data.name);
+         }
+     });
+
+     let forks;
+
+     $('nav').on('click', 'h1.fork', function() {
+         const ul = $('<ul>');
+         forks.forEach(fork => {
+             ul.append(`<li><a href="${root}${fork}" target="_blank">${fork}</a></li>`);
+         });
+         ul.dialog({
+             title: 'forks'
+         });
+     });
 
      const has_worker = !!worker;
      await worker;
@@ -876,7 +959,7 @@ function draw() {
      };
      window.state = state;
 
-     const js_template = await get_js_template();
+     let js_template = await get_js_template();
 
      state.editors.input = CodeMirror($('.js-editor').get(0), {
          theme: 'seti',
