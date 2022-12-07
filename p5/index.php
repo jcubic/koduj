@@ -802,7 +802,7 @@ function draw() {
          updates[`${fork}/forks/${key}`] = room;
          database.ref().update(updates);
          delete query.fork;
-         history.replaceState(null, '', location.path + '?' + params(query));
+         history.replaceState(null, '', room + '?' + params(query));
      }
 
      forksRef.on('value', (snapshot) => {
@@ -819,7 +819,8 @@ function draw() {
          const data = snapshot.val();
          if (data) {
              const link = $('span.fork').removeClass('hidden').find('.origin');
-             link.attr('href', `${root}${data.name}`).text(data.name);
+             const url = `${root}${data.name}?${params(query)}`;
+             link.attr('href', url).text(data.name);
          }
      });
 
@@ -828,7 +829,8 @@ function draw() {
      $('nav').on('click', 'h1.fork', function() {
          const ul = $('<ul>');
          forks.forEach(fork => {
-             ul.append(`<li><a href="${root}${fork}" target="_blank">${fork}</a></li>`);
+             const url = `${root}${fork}?${params(query)}`;
+             ul.append(`<li><a href="${url}" target="_blank">${fork}</a></li>`);
          });
          ul.dialog({
              title: 'forks'
@@ -966,7 +968,11 @@ function draw() {
          lineWrapping: true,
          lineNumbers: true,
          matchBrackets: true,
-         extraKeys: { Tab: better_tab, "Alt-F": "findPersistent" },
+         extraKeys: {
+             Tab: better_tab,
+             "Ctrl-Space": "autocomplete",
+             "Alt-F": "findPersistent"
+         },
          indentUnit: 4,
          mode: 'javascript'
      });
