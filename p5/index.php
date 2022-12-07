@@ -342,6 +342,10 @@ $origin = origin();
      .ui-dialog.color .ui-dialog-content {
          height: calc(100% - 41px) !important;
      }
+     .ui-dialog .ui-dialog-content .box input {
+         display: inline;
+         width: calc(100% - 121px);
+     }
     </style>
     <link href="https://cdn.jsdelivr.net/combine/npm/prismjs/themes/prism-coy.css,npm/jquery.terminal/css/jquery.terminal.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/jquery"></script>
@@ -440,7 +444,17 @@ $origin = origin();
     </p>
   </footer>
   <div id="help-modal" style="display: none">
-    <iframe src="https://p5js.org/reference/"></iframe>
+    <div class="box">
+      <div class="toolbar">
+        <ul>
+          <li><button class="back">Back</button></li>
+          <li><button class="forward">Forward</button></li>
+          <li><button class="refresh">refresh</button></li>
+        </ul>
+        <input/>
+      </div>
+      <iframe id="help_frame"></iframe>
+    </div>
   </div>
 <script type="text/x-template" id="main_code">
   function main() {
@@ -774,7 +788,98 @@ function draw() {
                reject();
           });
      });
-}
+ }
+
+
+ function init_browser() {
+     const base = 'https://proxy.jcubic.pl';
+     const home = 'https://p5js.org/reference/';
+     const $dialog = $('#help-modal');
+     $dialog.dialog({
+         width: window.innerWidth * 2/3,
+         height: window.innerHeight - 200
+     });
+     //iframe.attr('href', base + '/?__proxy_url=' + home);
+     const $toolbar = $dialog.find('.toolbar');
+     const $ul = $toolbar.find('ul');
+     const $back = $('.back').find('button');
+     const $forward = $('.forward').find('button');
+     const $refresh = $('.refresh').find('button');
+     window.index = 0;
+     let last_index = 0;
+     window.proxy_history = [];
+     let push = true;
+     function toggle_buttons() {
+         $back.toggleClass('disabled', index == 0);
+         $forward.toggleClass('disabled', index == proxy_history.length-1);
+     }
+     toggle_buttons();
+     $ul.on('click', 'button', function(e) {
+         const name = $(this).attr('class').replace(/\s*disabled\s*/, '');
+         if (name == 'refresh') {
+             iframe[0].setAttribute('src', iframe[0].contentWindow.location.href);
+         } else {
+             if (name == 'back') {
+                 index && index--;
+             } else if (name == 'forward') {
+                 index < proxy_history.length-1 && index++;
+             }
+             push = false;
+             if (proxy_history[index]) {
+                 open(proxy_history[index]);
+             }
+             toggle_buttons();
+         }
+     });
+     const iframe = $dialog.find('iframe');
+     function open(url) {
+         if (!url.match(/^http/)) {
+             if (url.match(/^\/\//)) {
+                 url = 'http:' + url;
+             } else {
+                 url = home + '?q=' + url;
+             }
+         }
+         input.val(url);
+         iframe[0].setAttribute('src', base + '?__proxy_url=base64:' + btoa(url));
+     }
+     var input = $dialog.find('input').val(home).keypress(function(e) {
+         if (e.which == 13) {
+             push = true;
+             open(input.val());
+         }
+     });
+     open(home);
+     window.onmessage = function(e) {
+         try {
+             var data = JSON.parse(e.data);
+             if (data.__proxy) {
+                 var url = data.__proxy.url;
+                 input.val(url);
+                 if (push) {
+                     if (data.__proxy.replace) {
+                         proxy_history[index] = url;
+                     } else {
+                         if (index != proxy_history.length - 1) {
+                             proxy_history = proxy_history.slice(0, index+1);
+                         }
+                         if (data.__proxy.url != proxy_history[index]) {
+                             proxy_history.push(url);
+                             index = proxy_history.length-1;
+                         }
+                     }
+                 } else {
+                     push = true;
+                 }
+                 if (data.__proxy.title) {
+                     $dialog.dialog('option', 'title', data.__proxy.title);
+                 }
+                 toggle_buttons();
+             }
+         } catch(e) {}
+     };
+     return $dialog;
+ }
 
  (async function($) {
      const firebase_config = {
@@ -870,12 +975,14 @@ function draw() {
              download(content, "p5.zip");
          });
      });
+
+     let $browser;
      $('#help').on('click', function() {
-         $('#help-modal').dialog({
-             title: 'Help',
-             width: window.innerWidth * 2/3,
-             height: window.innerHeight - 200
-         });
+         if ($browser) {
+             $browser.dialog();
+         } else {
+             init_browser();
+         }
      });
      $('#screenshot').click(() => {
          sketch.contentWindow.__koduj__.screenshot();
@@ -1119,6 +1226,7 @@ owa_cmds.push(['trackClicks']);
 //]]>
 </script>
 <!-- End Open Web Analytics Code -->
+<link href="https://proxy.jcubic.pl/css/style.css" rel="stylesheet" />
 <link href="./jquery-ui/jquery-ui.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/reinvented-color-wheel/css/reinvented-color-wheel.min.css" rel="stylesheet" />
 <script defer async src="./jquery-ui/jquery-ui.min.js"></script>
