@@ -108,8 +108,8 @@ function patch_body(body) {
 const loop_types = ['ForStatement', 'ForOfStatement', 'ForInStatement', 'DoWhileStatement', 'WhileStatement'];
 
 return function guard_loops(input) {
-    loop_count = 0;
-    const ast = esprima.parseScript(input);
+  loop_count = 0;
+  const ast = espree.parse(input, { ecmaVersion: 6, sourceType: 'module' });
 
     estraverse.traverse(ast, {
         enter: function (node, parent) {
