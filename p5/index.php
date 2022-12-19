@@ -949,6 +949,7 @@ function draw() {
      const HTML_FILE = '_p5.html'
 
      const html = await fetch_text('./base.html');
+     const postfix = await fetch_text('./postfix.js');
 
      const state = {
          dev_mode: ls.get(DEV_MODE),
@@ -1069,7 +1070,7 @@ function draw() {
      async function set_idb() {
          await set(INPUT_CODE, state.input);
          await set(HTML_FILE, state.html);
-         await set(SCRIPT_FILE, state.javascript);
+         await set(SCRIPT_FILE, state.javascript + postfix);
      }
 
      async function update() {

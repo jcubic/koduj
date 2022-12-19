@@ -109,7 +109,7 @@ const loop_types = ['ForStatement', 'ForOfStatement', 'ForInStatement', 'DoWhile
 
 return function guard_loops(input) {
   loop_count = 0;
-  const ast = espree.parse(input, { ecmaVersion: 6, sourceType: 'module' });
+  const ast = espree.parse(input, { ecmaVersion: 14, sourceType: 'module' });
 
     estraverse.traverse(ast, {
         enter: function (node, parent) {
