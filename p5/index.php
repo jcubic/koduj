@@ -358,7 +358,7 @@ $origin = origin();
     <script src="https://cdn.jsdelivr.net/npm/prettier@2.6.2/parser-babel.js"></script>
     <script src="https://cdn.firebase.com/libs/firepad/1.4.0/firepad.min.js"></script>
     <script src="https://cdn.jsdelivr.net/combine/gh/jcubic/static/js/espree.min.js,gh/jcubic/static/js/estraverse.min.js,gh/jcubic/static/js/escodegen.min.js"></script>
-    <script src="loop_guards.js"></script>
+    <script src="loop_guards.js?nocache=1"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body>
