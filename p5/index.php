@@ -948,7 +948,7 @@ function draw() {
      const SCRIPT_FILE = '_p5.js';
      const HTML_FILE = '_p5.html'
 
-     const html = await fetch_text('./base.html');
+     const html = await fetch_text('./base.html?cache=1');
      const postfix = await fetch_text('./postfix.js');
 
      const state = {
