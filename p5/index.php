@@ -990,7 +990,7 @@ function draw() {
                  show_error(data);
              } else if (data.type === 'echo') {
                  data.args.forEach(arg => {
-                     term.echo(arg);
+                     term.echo($.terminal.escape_formatting(arg));
                  });
              } else if (data.type === 'mousemove') {
                  const { x, y } = data;
