@@ -142,10 +142,6 @@
  function read(message = '? ') {
    return rpc("terminal::read", [message]);
  }
- // ref: https://stackoverflow.com/q/67322922/387194
- var __EVAL = (s) => {
-     return eval(`void (__EVAL = ${__EVAL.toString()}); ${s}`);
- };
  if ('P5Capture' in window) {
      P5Capture.setDefaultOptions({
          disableUi: true,
