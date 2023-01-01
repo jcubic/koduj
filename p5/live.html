@@ -151,4 +151,10 @@
      });
      __koduj__.recorder = P5Capture.getInstance();
  }
+ function record(frames) {
+    __koduj__.recorder.start({
+      format: "gif",
+      duration: frames
+    });
+ }
 </script>
