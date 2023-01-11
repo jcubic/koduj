@@ -34,7 +34,7 @@ function plot_line(x1, y1, x2, y2) {
 }
 
 // ploting function that accept function and scale
-function plot(f, scale = 1) {
+function plot(f, scale = 20) {
   for (var x = -200; x < 200; x++) {
     var y1 = f(x / scale) * scale;
     var y2 = f((x + 1) / scale) * scale;
@@ -48,4 +48,8 @@ function plot(f, scale = 1) {
 // draw point function
 function P(x, y, scale) {
   point(x * scale + 200, -y * scale + 200);
-};
+}
+
+function dot(x, y, scale = 20) {
+  circle(x * scale + 200, -y * scale + 200, 10);
+}
