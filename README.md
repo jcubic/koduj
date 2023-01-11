@@ -8,7 +8,8 @@ As first intro to programming use plotting functions.
 
 You can introduce mathematical functions:
 
-```
+
+```math
 f(x) = 2x + 1
 ```
 
