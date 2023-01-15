@@ -13,7 +13,7 @@ You can introduce mathematical functions:
 f(x) = 2x + 1
 ```
 
-and show how it's created in JavaScript
+and show how it's created in JavaScript by using this URL that will create new Sketch:
 
 `https://p5.javascript.org.pl/?include=coord.js&main=plot.js&base=fn.js`
 
