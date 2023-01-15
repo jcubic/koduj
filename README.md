@@ -15,7 +15,7 @@ f(x) = 2x + 1
 
 and show how it's created in JavaScript
 
-https://p5.javascript.org.pl/?include=coord.js&main=plot.js&base=fn.js
+`https://p5.javascript.org.pl/?include=coord.js&main=plot.js&base=fn.js`
 
 it will load this JavaScript code:
 
