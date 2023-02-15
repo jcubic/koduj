@@ -1,6 +1,8 @@
 <h1 align="center">
-  <img src="https://github.com/jcubic/koduj/blob/master/assets/logo.svg?raw=true"
-       alt="Logo of Koduj p5.js coding platform" />
+  <a href="https://koduj.org/">
+    <img src="https://github.com/jcubic/koduj/blob/master/assets/logo.svg?raw=true"
+         alt="Logo of Koduj p5.js coding platform" />
+  </a>
 </h1>
 
 Right now it's very simple playground created for teaching programming.
